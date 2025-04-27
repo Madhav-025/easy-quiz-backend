@@ -1,0 +1,48 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore build directories
+dist/
+build/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore editor settings
+.vscode/
+.idea/
+
+# Ignore compiled files
+*.class
+*.pyc
+*.o
+*.out
+
+# Ignore dependency directories
+vendor/
+venv/
+
+# Ignore coverage reports
+coverage/
+*.lcov
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.bak
+*.old
+
+# Ignore package lock files if you want
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
