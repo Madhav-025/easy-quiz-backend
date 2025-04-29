@@ -3,16 +3,13 @@ const dotenv = require("dotenv");
 dotenv.config();
 const router = express.Router();
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
 const Tesseract = require("tesseract.js");
 const { OpenAI } = require("openai");
 const { requireAuth } = require("../middlewares/authMiddleware");
 
-const upload = multer({ dest: "uploads/" });
-
-
-
+// ✅ Use in-memory storage instead of writing to disk
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,7 +17,7 @@ const openai = new OpenAI({
 });
 
 async function convertMCQsWithOpenAI(ocrArray) {
-    const prompt = `
+  const prompt = `
 You will be given an array of raw OCR-extracted text from images. Each entry includes a question, options, and possibly the correct option.
 Extract and format the data into this structured JSON format:
 
@@ -60,23 +57,20 @@ Now return only an array like this:
   });
 
   const output = chatResponse.choices[0]?.message?.content;
-  const jsonString = output.slice(
-    output.indexOf("["),
-    output.lastIndexOf("]") + 1
-  );
+  const jsonString = output.slice(output.indexOf("["), output.lastIndexOf("]") + 1);
   return JSON.parse(jsonString);
 }
 
-router.post("/upload", upload.array("images"),requireAuth, async (req, res) => {
+// ✅ Updated route with buffer-based Tesseract processing
+router.post("/upload", upload.array("images"), requireAuth, async (req, res) => {
   try {
     let num = 1;
     const results = await Promise.all(
       req.files.map(async (file) => {
-        const imagePath = path.join(__dirname, "..", file.path);
         const {
           data: { text },
-        } = await Tesseract.recognize(imagePath, "eng");
-        fs.unlinkSync(imagePath);
+        } = await Tesseract.recognize(file.buffer, "eng");
+
         return {
           filename: file.originalname,
           number: num++,
